@@ -3,14 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package familyTree.util;
+package Model;
 
 
-import familyTree.Human;
+import Class.Human;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
-
-
 
 /**
  *
