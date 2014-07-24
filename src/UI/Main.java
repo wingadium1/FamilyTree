@@ -15,6 +15,8 @@ import Model.MyTableModelClosed;
 import java.io.*;
 import java.util.*;
 import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -26,6 +28,9 @@ public class Main extends javax.swing.JFrame {
     int currentMaxID;
     MyTableModel model ;
     MyTableModelClosed currentHumanModel;
+    
+    
+    
 
     public Main() {
         initComponents();
@@ -33,6 +38,7 @@ public class Main extends javax.swing.JFrame {
         model = new MyTableModel(humanList);
         iniTable();
         setBlank();
+        
     }
 
     /**
@@ -196,6 +202,22 @@ public class Main extends javax.swing.JFrame {
             }
         });
         jScrollPane2.setViewportView(jTable);
+
+        jTextFieldSearch.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTextFieldSearchMouseClicked(evt);
+            }
+        });
+        jTextFieldSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldSearchActionPerformed(evt);
+            }
+        });
+        jTextFieldSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                jTextFieldSearchKeyTyped(evt);
+            }
+        });
 
         jButtonNew.setText("New");
         jButtonNew.addActionListener(new java.awt.event.ActionListener() {
@@ -547,6 +569,32 @@ public class Main extends javax.swing.JFrame {
         chooseQuanHe();
     }//GEN-LAST:event_jButton5ActionPerformed
 
+    public void newFilter() {
+    TableRowSorter<MyTableModel> sorter2 = new TableRowSorter<MyTableModel>(model);
+        jTable.setRowSorter(sorter2);
+    RowFilter<MyTableModel, Object> rf = null;
+    //If current expression doesn't parse, don't update.
+    try {
+        rf = RowFilter.regexFilter(jTextFieldSearch.getText(), 0,1,2,3,4);
+    } catch (java.util.regex.PatternSyntaxException e) {
+        return;
+    }
+    sorter2.setRowFilter(rf);
+    }
+    
+    private void jTextFieldSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldSearchActionPerformed
+        
+    }//GEN-LAST:event_jTextFieldSearchActionPerformed
+
+    private void jTextFieldSearchMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldSearchMouseClicked
+        jTextFieldSearch.setText("");
+        newFilter();
+    }//GEN-LAST:event_jTextFieldSearchMouseClicked
+
+    private void jTextFieldSearchKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldSearchKeyTyped
+        newFilter();
+    }//GEN-LAST:event_jTextFieldSearchKeyTyped
+
     /**
      * @param args the command line arguments
      */
@@ -630,6 +678,8 @@ public class Main extends javax.swing.JFrame {
         
         jTable.setModel(model);
         jTable.setRowSelectionAllowed(true);
+        TableRowSorter<MyTableModel> sorter = new TableRowSorter<MyTableModel>(model);
+        jTable.setRowSorter(sorter);
        
     }
 
