@@ -7,6 +7,7 @@
 package Model;
 
 import Class.Human;
+import java.util.Date;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 
@@ -40,7 +41,8 @@ public class MyTableModel extends AbstractTableModel
             return humanList.get(rowIndex).getName();
         if(columnIndex == 2)
             return humanList.get(rowIndex).isMale()?"Male":"Female";
-        return humanList.get(rowIndex).getBorn();
+        Date born = humanList.get(rowIndex).getBorn();
+        return ""+born.getDate()+"/"+(born.getMonth()+1)+"/"+(born.getYear()+1900);
                 
     }
     
