@@ -36,8 +36,8 @@ public class HumanClosed extends Human{
             case 0: return "Bố";
             case 1: return "Mẹ";
             case 2:
-                if(isMale())return "Vợ";
-                        else return "Chồng";
+                if(isMale())return "CHồng";
+                        else return "Vợ";
             case 3:
                 return "Con";
         }

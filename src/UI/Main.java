@@ -12,9 +12,12 @@ import Class.Human;
 import Class.HumanClosed;
 import Model.MyTableModel;
 import Model.MyTableModelClosed;
+import familyTree.util.Checker;
 import java.io.*;
 import java.util.*;
 import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -23,16 +26,24 @@ import javax.swing.JOptionPane;
 public class Main extends javax.swing.JFrame {
 
     Vector<Human> humanList = new Vector<>();
+    Vector<Human> humanListx = new Vector<>();
+    Vector<HumanClosed> humanclose =new Vector<HumanClosed>();
+    Vector<HumanClosed> list = new Vector<HumanClosed>();       
     int currentMaxID;
     MyTableModel model ;
     MyTableModelClosed currentHumanModel;
+    Checker check = new Checker();
+    Human currentHuman;
+    
 
     public Main() {
         initComponents();
+        jButtonSave.setVisible(false);
         loadData();
         model = new MyTableModel(humanList);
         iniTable();
         setBlank();
+        
     }
 
     /**
@@ -85,6 +96,10 @@ public class Main extends javax.swing.JFrame {
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        Save = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
 
         dialogChoose.setTitle("Change closed person");
 
@@ -136,7 +151,16 @@ public class Main extends javax.swing.JFrame {
         });
 
         jComboBoxQH.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Bố", "Mẹ", "Vợ/Chồng", "Con" }));
-        jComboBoxQH.setSelectedIndex(-1);
+        jComboBoxQH.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBoxQHItemStateChanged(evt);
+            }
+        });
+        jComboBoxQH.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxQHActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout dialogChooseLayout = new javax.swing.GroupLayout(dialogChoose.getContentPane());
         dialogChoose.getContentPane().setLayout(dialogChooseLayout);
@@ -196,6 +220,22 @@ public class Main extends javax.swing.JFrame {
             }
         });
         jScrollPane2.setViewportView(jTable);
+
+        jTextFieldSearch.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTextFieldSearchMouseClicked(evt);
+            }
+        });
+        jTextFieldSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldSearchActionPerformed(evt);
+            }
+        });
+        jTextFieldSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                jTextFieldSearchKeyTyped(evt);
+            }
+        });
 
         jButtonNew.setText("New");
         jButtonNew.addActionListener(new java.awt.event.ActionListener() {
@@ -446,7 +486,7 @@ public class Main extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 110, Short.MAX_VALUE)
                 .addGap(16, 16, 16)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonSave, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -484,6 +524,23 @@ public class Main extends javax.swing.JFrame {
             .addGap(0, 37, Short.MAX_VALUE)
         );
 
+        jMenu1.setText("File");
+
+        Save.setText("Save");
+        Save.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SaveActionPerformed(evt);
+            }
+        });
+        jMenu1.add(Save);
+
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Edit");
+        jMenuBar1.add(jMenu2);
+
+        setJMenuBar(jMenuBar1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -513,20 +570,118 @@ public class Main extends javax.swing.JFrame {
 
     private void btn_addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_addActionPerformed
         // TODO add your handling code here:
-     
-        
+        int choose = source_tb.getSelectedRow();
+        if (choose == -1) return;
+        Human source1 = humanListx.get(choose);
+        HumanClosed rela = new HumanClosed(source1, jComboBoxQH.getSelectedIndex());
+        humanclose.add(rela);
+        list.add(rela);
+        humanListx.remove(source1);
+        sourceModel.fireTableDataChanged();
+        closemodel.fireTableDataChanged();
+        model.fireTableDataChanged();
+        currentHumanModel.fireTableDataChanged();
     }//GEN-LAST:event_btn_addActionPerformed
 
     private void btn_okActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_okActionPerformed
         // TODO add your handling code here:
-        dialogChoose.setVisible(false);
-       
+        int i = humanList.indexOf(currentHuman);
+        for (HumanClosed a:list){
+            if (a.getQuanhe()==0) {
+                
+                for (Human b:humanList){
+                    if (b.getID().compareTo(a.getID())==0){
+                        humanList.get(i).setFather(b);
+                        Vector<Human> childofb = (Vector<Human>) b.getChildrenList();
+                        for (Human c: childofb){
+                            if (c.getID().compareTo(humanList.get(i).getID())==0){
+                                childofb.remove(c);
+                                childofb.add(humanList.get(i));
+                            }
+                        }
+                        b.setChildrenList(childofb);
+                        if (humanList.get(i).getMother()!=null) b.setSpouse(humanList.get(i).getMother());
+                        if (!childofb.isEmpty()) humanList.get(i).getMother().setChildrenList(childofb);
+                    }
+                }
+            }
+            if (a.getQuanhe()==1) {
+                
+                for (Human b:humanList){
+                    if (b.getID().compareTo(a.getID())==0){
+                        humanList.get(i).setMother(b);
+                        Vector<Human> childofb = (Vector<Human>) b.getChildrenList();
+                        for (Human c: childofb){
+                            if (c.getID().compareTo(humanList.get(i).getID())==0){
+                                childofb.remove(c);
+                                childofb.add(humanList.get(i));
+                            }
+                        }
+                        if (humanList.get(i).getFather()!=null) b.setSpouse(humanList.get(i).getMother());
+                        if (!childofb.isEmpty()) humanList.get(i).getMother().setChildrenList(childofb);
+                        if (!childofb.isEmpty()) b.setChildrenList(childofb);
+                    }
+                }
+            }
+            if (a.getQuanhe()==2) {
+                for (Human b:humanList){
+                    if (b.getID().compareTo(a.getID())==0){
+                     //  currentHuman.setSpouse(b);
+                     //  b.setSpouse(currentHuman);
+                    }
+                }
+                
+            }
+            if (a.getQuanhe()==3){
+                for (Human b:humanList){
+                    if (b.getID().compareTo(a.getID())==0){
+                        if (humanList.get(i).isMale()) {
+                            b.setFather(humanList.get(i));
+                            b.setMother(humanList.get(i).getSpouse());
+                        }
+                        else {
+                            b.setMother(humanList.get(i));
+                            b.setFather(humanList.get(i).getSpouse());
+                        }
+                        Vector<Human> childofb = (Vector<Human>) humanList.get(i).getChildrenList();
+                        for (Human c: childofb){
+                            if (c.getID().compareTo(b.getID())==0){
+                                childofb.remove(c);
+                                childofb.add(b);
+                            }
+                        }
+                        humanList.get(i).setChildrenList(childofb);
+                        for (Human d:humanList){
+                            if (d.getID().compareTo(humanList.get(i).getSpouse().getID())==0){
+                                d.setChildrenList(childofb);
+                            }
+                        }
+                    
+                        
+                    }
+                }
+            }
         
+            
+        }
+        dialogChoose.setVisible(false);
     }//GEN-LAST:event_btn_okActionPerformed
 
     private void btn_removeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_removeActionPerformed
         // TODO add your handling code here:
-  
+        int choose = closed_tb.getSelectedRow();
+        if (choose == -1) return;
+        HumanClosed rela = humanclose.get(choose);
+        Human source1 = (Human) rela;
+        
+        humanclose.remove(rela);
+        list.remove(rela);
+        humanListx.add(source1);
+        sourceModel.fireTableDataChanged();
+        closemodel.fireTableDataChanged();
+        model.fireTableDataChanged();
+        currentHumanModel.fireTableDataChanged();
+        
     }//GEN-LAST:event_btn_removeActionPerformed
 
     private void jButtonDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeleteActionPerformed
@@ -546,6 +701,108 @@ public class Main extends javax.swing.JFrame {
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         chooseQuanHe();
     }//GEN-LAST:event_jButton5ActionPerformed
+
+    public void newFilter() {
+    TableRowSorter<MyTableModel> sorter2 = new TableRowSorter<MyTableModel>(model);
+        jTable.setRowSorter(sorter2);
+    RowFilter<MyTableModel, Object> rf = null;
+    //If current expression doesn't parse, don't update.
+    try {
+        rf = RowFilter.regexFilter(jTextFieldSearch.getText(), 0,1,2,3,4);
+    } catch (java.util.regex.PatternSyntaxException e) {
+        return;
+    }
+    sorter2.setRowFilter(rf);
+    }
+    
+    private void jTextFieldSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldSearchActionPerformed
+        
+    }//GEN-LAST:event_jTextFieldSearchActionPerformed
+
+    private void jTextFieldSearchMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldSearchMouseClicked
+        jTextFieldSearch.setText("");
+        newFilter();
+    }//GEN-LAST:event_jTextFieldSearchMouseClicked
+
+    private void jTextFieldSearchKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldSearchKeyTyped
+        newFilter();
+    }//GEN-LAST:event_jTextFieldSearchKeyTyped
+
+    private void jComboBoxQHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxQHActionPerformed
+        // TODO add your handling code here:
+        for (int i=0;i<4;i++){
+            if(i==jComboBoxQH.getSelectedIndex()) break;
+        }
+        switch (jComboBoxQH.getSelectedIndex()){
+            case 0: humanListx.clear();
+                    for (Human b:humanList){
+                        if (!check.isIn(b, list)&&b.isMale()&&b.getBorn().before(currentHuman.getBorn())){
+                            humanListx.add(b);
+                        }
+                    }
+                    
+                    if (!humanclose.isEmpty())   humanclose.clear();
+                    for (HumanClosed b:list){
+                        if (b.getQuanhe()==0) humanclose.add(b);
+                        break;
+                    }
+                    break;
+            case 1: humanListx.clear();
+                    for (Human b:humanList){
+                        if (!check.isIn(b, list)&&!b.isMale()&&b.getBorn().before(currentHuman.getBorn())){
+                            humanListx.add(b);
+                        }
+                    }
+                    if (!humanclose.isEmpty())   humanclose.clear();
+                    if (list.isEmpty()) break;
+                    for (HumanClosed b:list){
+                        if (b.getQuanhe()==1) humanclose.add(b);
+                        break;
+                    }
+                    break;
+            case 2: humanListx.clear();
+                    humanList.stream().forEach((b) -> {
+                    if (!check.isIn(b, list)&&(!(b.isMale()^currentHuman.isMale()))){
+                    } else {
+                        humanListx.add(b);
+                    }
+                    });
+                    if (!humanclose.isEmpty())   humanclose.clear();
+                    for (HumanClosed b:list){
+                        if (b.getQuanhe()==2) humanclose.add(b);
+                        break;
+                    }
+                    break;
+            default:humanListx.clear();
+            humanList.stream().filter((b) -> (!check.isIn(b, list) &&b.getBorn().after(currentHuman.getBorn()))).forEach((b) -> {
+            humanListx.add(b);
+        });
+                   
+                    if (!humanclose.isEmpty())   humanclose.clear();
+                    for (HumanClosed b:list){
+                        if (b.getQuanhe()==3) humanclose.add(b);
+                        break;
+                    }
+            
+        }
+            sourceModel.fireTableDataChanged();
+            closemodel.fireTableDataChanged();
+            model.fireTableDataChanged();
+            closemodel.fireTableDataChanged();
+        
+            
+        
+    }//GEN-LAST:event_jComboBoxQHActionPerformed
+
+    private void SaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveActionPerformed
+        // TODO add your handling code here:
+        saveData();
+    }//GEN-LAST:event_SaveActionPerformed
+
+    private void jComboBoxQHItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxQHItemStateChanged
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_jComboBoxQHItemStateChanged
 
     /**
      * @param args the command line arguments
@@ -583,6 +840,7 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem Save;
     private javax.swing.JButton btn_add;
     private javax.swing.JButton btn_ok;
     private javax.swing.JButton btn_remove;
@@ -603,6 +861,9 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -630,6 +891,8 @@ public class Main extends javax.swing.JFrame {
         
         jTable.setModel(model);
         jTable.setRowSelectionAllowed(true);
+        TableRowSorter<MyTableModel> sorter = new TableRowSorter<MyTableModel>(model);
+        jTable.setRowSorter(sorter);
        
     }
 
@@ -648,6 +911,7 @@ public class Main extends javax.swing.JFrame {
         } catch (IOException | ClassNotFoundException ex) {
             JOptionPane.showMessageDialog(this, "Xảy ra lỗi khi đọc file \"humanData.dat\"");
         }
+        currentMaxID = Integer.parseInt(humanList.lastElement().getID());
     }
     
     private boolean saveData(){
@@ -684,6 +948,7 @@ public class Main extends javax.swing.JFrame {
 
     private void addNewHuman() {
         setBlank();
+        jButtonSave.setVisible(true);
         currentMaxID++;
         jTextFieldID.setText(currentMaxID+"");
     }
@@ -713,6 +978,8 @@ public class Main extends javax.swing.JFrame {
     private void showSelected() {
         // lấy thông tin từ bảng hiển thị lên bên phải
         int index = jTable.getSelectedRow();
+        jButtonSave.setVisible(true);
+        currentHuman =humanList.get(index);
         Human h = humanList.get(index);
         jTextFieldID.setText(h.getID());
         jTextFieldName.setText(h.getName());
@@ -723,7 +990,7 @@ public class Main extends javax.swing.JFrame {
         jDateChooserDeath.setDate(h.getDeath());
         jCheckBox.setSelected(h.getDeath()!=null);
         /// khởi tạo current humanmodel
-        Vector<HumanClosed> list = new Vector<>();
+        list = new Vector<>();
         if(h.getFather() != null)
             list.add(new HumanClosed(h, 0));
         if(h.getMother()!= null)
@@ -736,14 +1003,18 @@ public class Main extends javax.swing.JFrame {
         currentHumanModel = new MyTableModelClosed(list);
         jTableClosed.setModel(currentHumanModel);
     }
-
+    MyTableModel sourceModel;
+    MyTableModelClosed closemodel;
     private void chooseQuanHe() {
         //khởi tạo source_tb
-        MyTableModel sourceModel = model;
+        sourceModel = new MyTableModel(humanListx);
         source_tb.setModel(sourceModel);
         //khởi tạo close_tb
-        closed_tb.setModel(currentHumanModel);
+        closemodel = new MyTableModelClosed(humanclose);
+        closed_tb.setModel(closemodel);
         //show dialog
+        dialogChoose.setTitle(currentHuman.getName());
+        jComboBoxQH.setSelectedIndex(0);
         dialogChoose.setVisible(true);
     }
 }
